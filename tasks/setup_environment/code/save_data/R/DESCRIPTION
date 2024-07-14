@@ -1,0 +1,26 @@
+Package: SaveData
+Title: Save and Summarize Data
+Version: 0.0.0.9001
+Authors@R: c(
+  person("Matthew", "Gentzkow", email = "gentzkow@stanford.edu", role = c("aut", "cre")), 
+  person("Jesse", "Shapiro", email = "jesse_shapiro@fas.harvard.edu", role = c("aut")), 
+  person("Xiaoyang", "Zhang", email = "xiaoyangzhang@uchicago.edu", role = c("ctb"))
+  )
+Description: Contains one function to save and summarize data. Use SaveData to save to standard formats and create a log file that summarizes the saved data. The log file gives standard summary statistics for numerical variables and displays variable types for all variables.
+Depends: 
+  R (>= 3.2.1)
+Imports:
+  data.table,
+  digest,
+  dplyr,
+  hash,
+  foreign,
+  knitr,
+  tibble,
+  magrittr
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.1
+Suggests: 
+    testthat

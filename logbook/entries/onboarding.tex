@@ -1,0 +1,348 @@
+This chapter is a guide for new RAs to get started with the research infrastructure. 
+It is a work in progress, and we welcome suggestions for improvement, 
+especially from other RAs.
+\textbf{It is not a substitute for the rest of the logbook, but rather a complement.}
+Everything after this chapter overviews what you will need to learn.
+Here we offer tips and tricks on how to learn it  – from the perspective of a new RA.
+
+\section{Overarching Suggestions}
+
+This section offers some high-level suggestions for 
+how to structure your preparation and onboarding.
+\begin{itemize}
+
+\item The degree of preparation required depends on your own prior experience. 
+If you have never used a command line before, written a \texttt{Makefile}, or used \texttt{git}/GitHub, 
+then your learning curve is steeper.
+So, we strongly suggest you do an honest accounting 
+of where your experience and existing abilities stand. 
+If you are confident in your experience, 
+then you may be able to skim this document and jump right in.
+If you are less confident, 
+then you might want need to spend more time behind-the-scenes to be ready on your first day. 
+Ultimately, both paths will lead to the same place with sufficient time and effort. 
+The main author of this chapter had little to no prior experience
+ with most of the technical tools described here.
+He will be the first to tell you that your lack of experience 
+is only an obstacle if you allow it to be.
+
+\item Be prepared to get stumped and make mistakes. 
+We want to be clear that you are not expected to be fluent in these tools on day one.
+You are expected, however, to be willing to learn and to be able to learn from your mistakes.
+And the only way to do so is by seeking help when needed: 
+from current or former RAs, from Josh, or from project co-authors.
+The absolute worst thing you can do is to struggle in silence.
+
+\item If you don't have examples already, 
+ask Josh or another RA for all or a portion of a project. 
+There is no substitute for hands-on experience, 
+and the closest you can get to that before you start is by learning from real code. 
+In a similar vein, we strongly encourage you to take an existing project 
+and adapt it to our workflow. 
+Were you an RA? Did you write a thesis? 
+Take that data and code and get it on GitHub, 
+take your Word document and write it in \LaTeX, and so on.
+
+
+\item AI can be a remarkably helpful learning tool.
+We all know that generative AI has many pitfalls, 
+especially if relying on its output verbatim when coding.
+But it is much stronger in interpreting existing code, 
+making it a natural fit for learning. 
+Say you are looking at an example \texttt{Makefile} and you don't know what a particular line does.
+If you feed it to ChatGPT (4.0 as of this writing), 
+it might interpret about 80\% of the line correctly.
+But that 80\% is likely far higher than your own baseline understanding, 
+and you can often fill in the remaining 20\% through interpolation.
+
+\end{itemize}
+
+\section{Specific Topics}
+
+\subsection{Setup}
+
+There are a few programs that you will need to implement our projects. 
+Things like \texttt{git}, \texttt{make}, 
+and other command line tools are automatically installed if you have a Mac or use Linux.
+But you should install Stata, Julia, \LaTeX, and R, 
+among others idiosyncratic to the demands of your project. 
+You should also install a text editor, such as VS Code or Sublime Text.
+I strongly recommend VS Code. 
+Once you open VS Code, navigate to the top right 
+and click the layout button that is divided horizontally into two sections.
+This will open the Terminal at the bottom of the screen. 
+This is \textbf{the} command line. 
+Within VS Code, install as many extensions as you think relevant. 
+Effectively every language has its own helpful extension, and there are also extensions for GitHub.
+
+\subsection{How we Use \texttt{make}}
+
+Section \ref{entry:make} is rich in detail about \texttt{make}. 
+This is a brief summary of its main applications 
+to our workflow and how I suggest approaching it.
+
+\begin{itemize}
+\item \texttt{Makefile}s consist of targets and prerequisites organized as a recipe. 
+Ultimately, the goal is to generate an output made from different ingredients.
+Say you wanted to sketch out the recipe for bread.
+The left of the colon is the bread, 
+and the right of the colon is the oven, flour, water, yeast, and salt.
+To the right of the \texttt{|} are order-only pre-requisites, 
+which describes anything that must exist prior to the execution of the recipe 
+but that the recipe does not require to be up-to-date.
+Note that the oven is included as a prerequisite. 
+After all, we need something to bake the bread in.
+The same is true for \texttt{Makefile}s: 
+we have code that facilitates the conversion of inputs to outputs.
+If we have two .csv files we want to merge into a single .dta file, 
+we write code to do so. 
+All \texttt{make} does is to link our inputs, our code, and our outputs together.
+So, as you will see below in the examples, most recipes are very similar: 
+\begin{lstlisting}[language=make]
+    path/to/output: code_file path/to/input1 path/to/input2 | order-only pre-requisite
+        $(LANGUAGE) $(automatic variables)
+    \end{lstlisting}
+You simply replace \texttt{LANGUAGE} with the type of code (\texttt{R}, 
+\texttt{STATA}, \texttt{PYTHON}) and the automatic variables with whatever you need to pass to your scripts.
+In our bread example, we would write:
+\begin{lstlisting}[language=make]
+    bread: oven flour water yeast salt | shelf
+        $(preheat) $<
+        $(mix) $^
+        $(bake) $@
+    \end{lstlisting}
+Note that you can have multiple rules for a single target; 
+bread is a multi-step process.
+You can also have a single rule for multiple targets. 
+If you were reheating leftovers, you might be able to reheat them all together. 
+Of course, we need something to store these ingredients and/or outputs in, 
+which is the purpose of the \texttt{shelf}.
+All that matters is that the shelf exists before we start baking.
+For real \texttt{Makefile}s, 
+the shelf is equivalent to a folder where the files are linked or stored.
+Since our tasks employ the same set of order-only pre-requisites, 
+we have a \texttt{Makefile} (\texttt{generic.make}) that automates all this for you.
+
+This is a very, very brief overview. Please read the \texttt{make} section in full.
+In particular, the sections on notes and pattern matching are most relevant.
+
+\item Learning \texttt{make} is not easy; in fact, 
+it is quite possibly the hardest aspect of our workflow. 
+Jonathan makes a few strong suggestions about the best ways to learn. 
+I concur that \href{https://www.youtube.com/watch?v=_Ms1Z4xfqv4}{MIT's Missing Semester} is a great introduction.
+And you should absolutely read the documentation and articles provided below.
+But I've found the most effective way to learn 
+is by reading and running existing \texttt{Makefile}s.
+Because our workflow has universally adopted \texttt{make}, 
+the expectation is that all your code will flow through a \texttt{Makefile}.
+The silver lining of this is that our projects have jointly created hundreds of \texttt{Makefile}s. 
+Use them! 
+I learned \texttt{make} before starting by reading and running the \texttt{Makefile}s. 
+Most tasks have reports or \texttt{readme.md}'s that describe what they are doing. 
+Treat that task as a puzzle, and the \texttt{Makefile} as your codebreaker. 
+By forcing yourself to work through what each component of the \texttt{Makefile} does, 
+you will internalize the nuances of it without realizing it. 
+Moreover, the more \texttt{Makefile}s you read, 
+the deeper your repository of knowledge will be. 
+In practice, you rarely have to write a recipe from scratch.
+You just need to be able to recall where you saw a similar recipe 
+and adapt it to your needs.
+
+\item Ask Josh to give you access to the repository for 
+\textit{Market Size and Trade of Medical Services}.
+It has too many \texttt{Makefile}s to count. 
+If you want a couple easier \texttt{Makefile}s, 
+look at the \texttt{Makefile}s for the tasks 
+\texttt{medicare\_GAF\_by\_geo} and \texttt{clean\_ACS\_data}.
+Scale up gradually, and challenge yourself with harder \texttt{Makefile}s 
+like \texttt{correlations\_exporter\_fe\_hospital\_quality} 
+and especially \texttt{downloaddata}.
+Your goal should be to be able to identify the purpose of each recipe 
+and be able to write a similar recipe with different inputs, outputs, 
+automatic variables, etc.
+If you can do that, you are in a good spot to hit the ground running.
+
+\end{itemize}
+
+\subsection{\texttt{git} and GitHub}
+
+This section focuses on the subjective aspects of \texttt{git} and GitHub. 
+By that, I mean stylistic choices that are not required to use Git, 
+but rather are best practices we've adopted. 
+As an introduction, 
+the logbook mentions \href{https://www.atlassian.com/git/tutorials}{Atlassian}. 
+It is an outstanding introduction, 
+covering most of what you will need on a day-to-day basis. 
+I also recommend \href{https://missing.csail.mit.edu/2020/version-control/}{MIT's Missing Semester} 
+for an audiovisual introduction.
+
+\subsubsection{Git}
+\begin{itemize}
+    \item The Git section suggests using a GUI to ease the transition. 
+          I'm not sure I agree. 
+          Using the command line for git forces you to know and understand the git commands you issue. 
+          I strongly suggest sticking with the command line to manage git while you learn. 
+          If anything, it will be a prohibitive choice in the first few days/weeks, 
+          but will generate increasing returns once you move past the early obstacles.
+    \item Commit and push often, especially in your first few weeks.
+Our workflow is decentralized.
+There is no built-in method for monitoring your progress or for anyone to check in on you; 
+unlike Dropbox, your work does not automatically sync. 
+Committing early and often can help get ahead of bugs, correct poor habits, and, 
+most importantly, prove you are actually working!
+    \item Commit messages should be descriptive but curt. 
+It's perfectly fine to use shorthand and abbreviations in commit messages, 
+but make them topical. 
+    \item Commit outputs under specific circumstances only. 
+    Those that go in the logbook or paper, for example. 
+    Rarely, if ever, do we suggest committing data files.
+If you've done everything correctly, 
+the data outputs will automatically be generated when one runs \texttt{make}.
+    \item Do not run from merge conflicts! VS Code makes merge conflicts easy to resolve. 
+    A quick summary: 
+    First, merge or pull the two branches to generate the conflict. 
+    The command line will tell you which file(s) is/are conflicted. 
+    Navigate to them via the file explorer on the left and click ``open merge editor'' when prompted. Then, just click the version you want to keep.
+    And, you are about done.
+    \item VS Code's built in source control paired with the GitHub extension is a powerful combination.
+    It will highlight all changes you've made since your last commit
+     and allow you to revert them at will. 
+    Use it liberally.
+\end{itemize}
+
+\subsubsection{GitHub}
+This section goes ``tab-by-tab'' to mimick the GitHub interface on web browsers. 
+We now use GitHub to manage code, tasks, and assignments.
+\begin{itemize}
+    \item The first tab is ``code.'' 
+    Here you will see all open branches with all their contents, 
+    with the default branch most often \texttt{main} or \texttt{master}. 
+    You can use this to visually inspect branches, past commits, and project meta-data, 
+    like the \texttt{README.md}, recent activity, and contributors.
+    \item The second tab is ``issues.'' 
+    This is where we track assignments. 
+    You will be assigned (or will assign yourself) issues on an ongoing basis. 
+    Some suggestions for working with issues:
+        \begin{itemize}
+            \item Use the discussion space to post issue-specific questions, bugs, 
+            or \textit{preliminary} outputs that you want feedback on. 
+            Do not post every output you generate. 
+            Use your best judgment, 
+            but we generally suggest posting outputs that will start or contribute to an offline discussion. 
+            Otherwise, commit the code only.
+            \item If posting outputs, PNGs show up embedded in the comment,
+             while PDFs can be viewed but do not appear automatically.
+            \item Note the issue number. 
+            We use that to identify issues during synchronous meetings 
+            and when linking other issues or pull requests. 
+            \item It's not a bad idea to post updates on your progress 
+            if you haven't generated results, outputs, or closed the issue quite yet.
+        \end{itemize}
+        \item The third tab is ``pull requests''. 
+        This is where we review code. 
+        This is the most complicated tab.
+        \begin{itemize}
+            \item PRs get assigned numbers just like issues. 
+            \item Make sure to change the default title to something brief but informative. 
+            \item Give a detailed description of the PR. 
+            A complete description identifies what code has changed, 
+            what outputs have changed, and what issue(s) this closes. 
+            \item Use $\#<number>$ to automatically link to an issue in the text. 
+            \item For both this and PRs, you can link to specific comments in other issues by navigating to that comment, 
+            clicking the three dots, and copying the link.
+            \item If not done automatically, 
+            link the issue using the ``development'' option so that this PR automatically closes the linked issue.
+            \item Assign yourself as the assignee and assign at least one reviewer. 
+            Generally, at least one co-author should be a reviewer, 
+            or at the very least, an experienced RA.
+            \item The reviewer will request changes. 
+            When they do, make their requested changes, commit them, 
+            push them to the same branch, and go back to the PR.
+            The requested changes will now appear on code blocks that have the outdated label. 
+            You should respond to the request by indicating which commit addressed this. 
+            Copy the commit link from the PR's list of commits, 
+            comment a sentence with the link, then resolve the conversation.
+            \item Once completed, go to the reviewers tab and 
+            click the two arrows arranged in a circle – like the recycling symbol – to re-request review. 
+            \item Once this process happens and the reviewers are satisfied, they will approve the PR. 
+            You can now go to the bottom and click the green ``squash and merge'' button to close the PR, 
+            then you can delete the old branch.
+            \item Sometimes, you will get a merge conflict preventing squashing. 
+            Simple ones can be resolved on GitHub using their prompts, 
+            while others must be done via the command line. 
+            Follow GitHub's instructions on which you need to use.
+        \end{itemize}
+        \item The next tab is actions. 
+        These consist of automatic steps that GitHub takes every time a PR is opened or a review is requested.
+        \begin{itemize}
+        \item Our specific actions check \texttt{Makefile}s 
+        to ensure there are no \texttt{make} errors on the branch that will be merged. 
+        An error will prevent merging. 
+        \item These run automatically. 
+        If you need to check something, 
+        you can run them manually using the workflow dispatch, 
+        but this is not recommended unless you are debugging actions themselves.
+        \item If an action fails, you will see that it has failed on the PR. 
+        You can click on the failed action to see what \texttt{Makefile} caused the issue. 
+    \end{itemize}
+    \item The other tabs are less relevant. 
+    The only one worth mentioning is Wiki, which is exactly what it sounds like.
+    Some projects use it for literature and other supporting writing, some don't. 
+\end{itemize}
+
+\subsection{The Shell}
+Learning the shell has its advantages, 
+and harnessing the power of the terminal can significantly improve your workflow and efficiency.
+But doing so takes time, 
+especially given our reliance on a few commands with one or two use cases. 
+More often than not, we can succeed by recycling old code with minor changes. 
+We do this with \texttt{grep} and \texttt{sed}, 
+two commands that you will see frequently. 
+We recommend \href{https://missing.csail.mit.edu/}{MIT's Missing Semester} 
+for an efficient introduction to the shell.
+Of the other links the logbook mentions, 
+\href{https://ryanstutorials.net/linuxtutorial/}{this} is my favorite. 
+% If you want to expand your knowledge of the terminal beyond the basics....add any notes from Luke here.
+
+\subsection{Managing Time}
+
+An underrated aspect of working in a full-time research environment is decentralization.
+You will have multiple tasks, projects, 
+and organizing your time and priorities is often left to you.
+Here are some very simple guidelines as you start to take on more responsibility.
+\begin{itemize}
+    \item Prioritize substantive, economic tasks over bug fixing and workflow optimization. 
+         There are always exceptions – for example, a bug prevents your paper from compiling. 
+         But in general, you should give more weight to economically significant tasks. 
+         Workflow optimizing can occur before, during, or after submission. 
+         Economic tasks cannot. 
+         This is not to say you should neglect workflow optimization. 
+         It is to say that you should be mindful of the marginal benefit of each task.
+    \item Prioritize tasks that are time-sensitive.
+          Not all tasks have a formal or even informal deadline.
+          But if you are working on two projects and one has a team meeting tomorrow, 
+          then you should prioritize that project.
+    \item When in doubt, ask what matters. 
+          Frequent communication is a hallmark of our workflow and a prerequisite for success.
+          If you are unsure of what matters more, ask during a meeting, on GitHub, or via email.
+\end{itemize} 
+
+\subsection{Previous RPs' Contact Information}
+
+Although the old RPs will have departed or will soon depart by your start date, 
+they are still a valuable resource for questions, 
+whether it be specific code they wrote, general workflow questions, or acclimating to Chicago.
+Below is a list of their contact information and the projects they worked on. 
+% ideally, update this before every new RP class.
+\begin{itemize}
+    \item Scott Blatte: \texttt{sblatte@gmail.com}, \texttt{sblatte@uchicago.edu}, 617-548-7905. \textbf{Projects:} \texttt{doctor-tasks}, \texttt{health-care-jobs}.
+    \item Nick Niers:
+    \item Xiaoyang Zhang: \texttt{xiaoyangzhang@uchicago.edu}.  \textbf{Projects:} \texttt{travel-nursing}.
+    \item Luke Motley: \texttt{ljmotley@gmail.com}, 618-972-6062. \textbf{Projects:} \texttt{doctor-tasks}, \texttt{health-care-jobs}, \texttt{air-quality}, \texttt{hospital-tax}, \texttt{GHHO}
+    \item Dylan Baker: \texttt{dylanrbaker239@gmail.com}, 859-396-0663. \textbf{Projects:} \texttt{travel-nursing}, \texttt{health-care-jobs}, \texttt{voting-aca}
+    \item Vaidehi Parameswaran: \texttt{vp2409@columbia.edu}. \textbf{Projects:} \texttt{doctor-tasks}, \texttt{travel-nursing}
+\end{itemize}
+
+
+
+

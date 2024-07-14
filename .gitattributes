@@ -1,0 +1,18 @@
+# Definitively text files 
+*.sh text eol=lf
+*.sbatch text eol=lf
+*.tex text eol=lf
+*.txt text eol=lf
+*.TXT text eol=lf
+*.m text eol=lf
+*.do text eol=lf
+*.py text eol=lf
+*.md text eol=lf
+*.R text eol=lf
+*.eps text eol=lf
+*.csv text eol=lf
+*.bib text eol=lf
+*.gitignore text eol=lf
+*.make text eol=lf
+*Makefile text eol=lf
+
