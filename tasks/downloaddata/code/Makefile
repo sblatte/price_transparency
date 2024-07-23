@@ -2,7 +2,7 @@ SHELL=bash
 
 include ../../shell_functions.make
 
-all: $(foreach year, $(shell seq 2011 2023), ../output/$(year)_chargemasters)
+all: $(foreach year, $(shell seq 2011 2023), ../output/$(year)_chargemasters)  $(foreach year, $(shell seq 2015 2022), ../output/gaz$(year)zcta5centroid.csv)
 
 include ../../generic.make
 
@@ -36,5 +36,13 @@ $(foreach year, $(shell seq 2011 2018) 2020 2021, ../temp/$(year)-hospital-charg
 	wget https://data.chhs.ca.gov/dataset/0c315f3b-fc3c-4998-bd79-4659616c834d/resource/62675919-d304-43e2-8575-3610664e6554/download/chargemastercdm-2022.zip -O $@
 ../temp/chargemaster_raw_2023.zip: | $(OOPR)
 	wget https://data.chhs.ca.gov/dataset/0c315f3b-fc3c-4998-bd79-4659616c834d/resource/c56096d9-cd59-4179-958d-309110a44813/download/2023_hospital_chargemaster.zip -O $@
+
+
+$(foreach year, 2015 2016, ../output/gaz$(year)zcta5centroid.csv): ../output/gaz%zcta5centroid.csv: | $(OOPR)
+	wget https://data.nber.org/distance/$*/gaz/zcta5/gaz$*zcta5centroid.csv -O $@
+
+$(foreach year, $(shell seq 2017 2022), ../output/gaz$(year)zcta5centroid.csv): ../output/gaz%zcta5centroid.csv: | $(OOPR)
+	wget https://data.nber.org/distance/$*/centroid/gaz$*zcta5centroid.csv -O $@
+
 $(foreach year, $(shell seq 2011 2023), ../output/$(year)): ../output/%: | ../output
 	mkdir $@
