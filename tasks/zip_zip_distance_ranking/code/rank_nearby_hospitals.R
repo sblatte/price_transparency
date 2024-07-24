@@ -84,73 +84,76 @@ final_office_file <- office_zips_only$zcta5 %>% cbind(final_office_file)
 colnames(final_office_file)[1] = "office_zcta"
 
 write_dta(final_office_file, paste0("../output/nearby_hospitals_", year, ".dta"))
-patterns <- c("^006", "^007", "^008", "^009", "^995", "^996", "^997", "^998", "^999", "^967", "^968", "^09", "^340", "^962", "^963", "^964", "^965", "^966", "^969")
 
-# Create a regular expression pattern by collapsing the patterns with OR (|)
-pattern <- paste(patterns, collapse = "|")
+if (year == 2022) {
+    patterns <- c("^006", "^007", "^008", "^009", "^995", "^996", "^997", "^998", "^999", "^967", "^968", "^09", "^340", "^962", "^963", "^964", "^965", "^966", "^969")
 
-# Filter out rows with zip codes matching the pattern
-final_office_file_filtered <- final_office_file %>%
-  filter(!grepl(pattern, office_zcta))
+    # Create a regular expression pattern by collapsing the patterns with OR (|)
+    pattern <- paste(patterns, collapse = "|")
 
-# Check the result
-print(final_office_file_filtered)
+    # Filter out rows with zip codes matching the pattern
+    final_office_file_filtered <- final_office_file %>%
+    filter(!grepl(pattern, office_zcta))
 
-shapefile <- st_as_sf(final_office_file_filtered, coords = c('intptlong', 'intptlat'))
+    # Check the result
+    print(final_office_file_filtered)
 
-
-#Plot it:
-
-sf_fifty <- sf::st_as_sf(fifty_states, coords = c("long", "lat")) %>% 
-  group_by(id, piece) %>% 
-  summarize(do_union = FALSE) %>%
-  st_cast("POLYGON") %>% 
-  ungroup() %>%
-  filter(!id %in% c("alaska", "hawaii"))
+    shapefile <- st_as_sf(final_office_file_filtered, coords = c('intptlong', 'intptlat'))
 
 
-options(tigris_use_cache = TRUE)
-zcta_file <- zctas(cb = FALSE, starts_with = NULL, year = 2015)
-zcta_sf <- st_as_sf(zcta_file)
-final_office_file_filtered$ZCTA5CE10 <- final_office_file_filtered$office_zcta
-zipcodes <- merge(zcta_sf, final_office_file_filtered, by = "ZCTA5CE10", all.x = FALSE)
-sf_fifty <- sf_fifty %>% sf::st_set_crs(4326)
-plot1 <- ggplot(zipcodes) + 
-  geom_sf(aes(fill = distance_1)) +
-  geom_sf(data = sf_fifty, fill = NA, color = "black") +
-  scale_fill_gradient2(low="blue", mid="green", high="red", name = "KM to Hospital") +
-  theme_minimal() +
-  theme(
-    axis.title = element_blank(),
-    axis.text = element_blank(),
-    axis.ticks = element_blank(),
-    legend.position = "bottom",
-    legend.direction = "horizontal",
-    legend.title = element_text(size = 10),  # Adjust legend title size if needed
-    legend.text = element_text(size = 8)    # Adjust legend text size if needed
-  )
+    #Plot it:
+
+    sf_fifty <- sf::st_as_sf(fifty_states, coords = c("long", "lat")) %>% 
+    group_by(id, piece) %>% 
+    summarize(do_union = FALSE) %>%
+    st_cast("POLYGON") %>% 
+    ungroup() %>%
+    filter(!id %in% c("alaska", "hawaii"))
 
 
-ggsave("../output/zcta_distance_2022.pdf")
+    options(tigris_use_cache = TRUE)
+    zcta_file <- zctas(cb = FALSE, starts_with = NULL, year = 2022)
+    zcta_sf <- st_as_sf(zcta_file)
+    final_office_file_filtered$ZCTA5CE10 <- final_office_file_filtered$office_zcta
+    zipcodes <- merge(zcta_sf, final_office_file_filtered, by = "ZCTA5CE10", all.x = FALSE)
+    sf_fifty <- sf_fifty %>% sf::st_set_crs(4326)
+    plot1 <- ggplot(zipcodes) + 
+    geom_sf(aes(fill = distance_1)) +
+    geom_sf(data = sf_fifty, fill = NA, color = "black") +
+    scale_fill_gradient2(low="blue", mid="green", high="red", name = "KM to Hospital") +
+    theme_minimal() +
+    theme(
+        axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        legend.position = "bottom",
+        legend.direction = "horizontal",
+        legend.title = element_text(size = 10),  # Adjust legend title size if needed
+        legend.text = element_text(size = 8)    # Adjust legend text size if needed
+    )
 
-zipcodes_nooutliers <- zipcodes %>% filter(distance_1 <= 50)
 
-plot2 <- ggplot(zipcodes_nooutliers) + 
-  geom_sf(aes(fill = distance_1)) +
-  geom_sf(data = sf_fifty, fill = NA, color = "black") +
-  scale_fill_gradient2(low="blue", mid="green", high="red", name = "KM to Hospital") +
-  theme_minimal() +
-  theme(
-    axis.title = element_blank(),
-    axis.text = element_blank(),
-    axis.ticks = element_blank(),
-    legend.position = "bottom",
-    legend.direction = "horizontal",
-    legend.title = element_text(size = 10),  # Adjust legend title size if needed
-    legend.text = element_text(size = 8)    # Adjust legend text size if needed
-  )
+    ggsave("../output/zcta_distance_2022.pdf")
+
+    zipcodes_nooutliers <- zipcodes %>% filter(distance_1 <= 50)
+
+    plot2 <- ggplot(zipcodes_nooutliers) + 
+    geom_sf(aes(fill = distance_1)) +
+    geom_sf(data = sf_fifty, fill = NA, color = "black") +
+    scale_fill_gradient2(low="blue", mid="green", high="red", name = "KM to Hospital") +
+    theme_minimal() +
+    theme(
+        axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        legend.position = "bottom",
+        legend.direction = "horizontal",
+        legend.title = element_text(size = 10),  # Adjust legend title size if needed
+        legend.text = element_text(size = 8)    # Adjust legend text size if needed
+    )
 
 
-ggsave("../output/zcta_distance_trimmed_2022.pdf")
+    ggsave("../output/zcta_distance_trimmed_2022.pdf")
+}
 
 
