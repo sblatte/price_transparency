@@ -18,6 +18,8 @@ $(foreach year, $(shell seq 2013 2022), ../output/nearby_hospitals_$(year).dta):
 	ln -sf $< $@
 ../input/trimmed_provider_data_%.dta: ../../clean_provider_data/output/trimmed_provider_data_%.dta | ../input
 	ln -sf $< $@
+../input/CPI-U.dta: ../../download_cpi/output/CPI-U.dta | ../input
+	ln -sf $< $@
 
 
 $(foreach year, $(shell seq 13 22), ../input/MUP_INP_RY24_P04_V10_DY$(year)_Prv.csv): ../input/MUP_INP_RY24_P04_V10_DY%_Prv.csv: | ../input
